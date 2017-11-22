@@ -24,7 +24,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/GoogleCloudPlatform/k8s-service-catalog/installer/pkg/broker-cli/client/osb"
+	"github.com/GoogleCloudPlatform/k8s-service-catalog/broker-cli/pkg/client/osb"
 )
 
 const acceptsIncompleteKey = "accepts_incomplete"
