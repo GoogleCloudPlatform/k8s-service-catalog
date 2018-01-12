@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -29,6 +28,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/k8s-service-catalog/broker-cli/pkg/auth"
 	"github.com/GoogleCloudPlatform/k8s-service-catalog/broker-cli/pkg/client/adapter"
+	"github.com/GoogleCloudPlatform/k8s-service-catalog/broker-cli/pkg/client/osb"
 	"github.com/GoogleCloudPlatform/k8s-service-catalog/installer/pkg/gcp"
 	"github.com/spf13/cobra"
 )
@@ -102,14 +102,14 @@ func addGCPBroker() error {
 		return fmt.Errorf("error reading content of the key file : %v", err)
 	}
 
-	vb, err := getOrCreateVirtualBroker(projectID, "default", "Default Broker")
+	b, err := getOrCreateBroker(projectID, "default", "Default Broker")
 	if err != nil {
 		return fmt.Errorf("error retrieving or creating default broker : %v", err)
 	}
 
 	data := map[string]interface{}{
 		"SvcAccountKey": key,
-		"GCPBrokerURL":  vb.URL,
+		"GCPBrokerURL":  b.URL,
 	}
 
 	err = generateGCPBrokerConfigs(dir, data)
@@ -138,7 +138,7 @@ func getOrCreateGCPServiceAccount(name, email string) error {
 	return nil
 }
 
-func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtualBroker, error) {
+func getOrCreateBroker(projectID, brokerName, brokerTitle string) (*osb.Broker, error) {
 	// use the application default credentials
 	brokerClient, err := httpAdapterFromAuthKey("")
 	if err != nil {
@@ -171,17 +171,7 @@ func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtu
 		}
 	}
 
-	var vb virtualBroker
-	err = json.Unmarshal(res, &vb)
-	return &vb, err
-}
-
-// virtualBroker represents a GCP virtual broker.
-type virtualBroker struct {
-	Name     string   `json:"name"`
-	Title    string   `json:"title"`
-	Catalogs []string `json:"catalogs"`
-	URL      string   `json:"url"`
+	return res, err
 }
 
 func generateGCPBrokerConfigs(dir string, data map[string]interface{}) error {
