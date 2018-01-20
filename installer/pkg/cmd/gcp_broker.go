@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/GoogleCloudPlatform/k8s-service-catalog/installer/pkg/broker-cli/auth"
 	"github.com/GoogleCloudPlatform/k8s-service-catalog/installer/pkg/broker-cli/client/adapter"
@@ -144,32 +143,29 @@ func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtu
 		return nil, fmt.Errorf("failed to create broker client. You might want to run 'gcloud auth application-default login'")
 	}
 
-	registryURL := "https://servicebroker.googleapis.com"
-	res, err := brokerClient.CreateBroker(&adapter.CreateBrokerParams{
-		RegistryURL: registryURL,
-		Project:     projectID,
-		Name:        brokerName,
-		Title:       brokerTitle,
-		Catalogs:    []string{"projects/gcp-services/catalogs/gcp-catalog"},
+	brokerURL := "https://servicebroker.googleapis.com"
+	errCode, respBody, err := brokerClient.CreateBroker(&adapter.CreateBrokerParams{
+		URL:      brokerURL,
+		Project:  projectID,
+		Name:     brokerName,
+		Title:    brokerTitle,
+		Catalogs: []string{"projects/gcp-services/catalogs/gcp-catalog"},
 	})
+	if errCode == 409 {
+		return &virtualBroker{
+			Name:     brokerName,
+			URL:      fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", brokerURL, projectID, brokerName),
+			Title:    brokerTitle,
+			Catalogs: []string{"projects/gcp-services/catalogs/gcp-catalog"},
+		}, nil
+	}
+
 	if err != nil {
-		// TODO(droot): Get rid of this hacky logic once broker client relays
-		// structured Error types and we don't have to reply on string match
-		if strings.Contains(err.Error(), "ALREADY_EXISTS") {
-			err = nil
-			return &virtualBroker{
-				Name:     brokerName,
-				URL:      fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", registryURL, projectID, brokerName),
-				Title:    brokerTitle,
-				Catalogs: []string{"projects/gcp-services/catalogs/gcp-catalog"},
-			}, nil
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	var vb virtualBroker
-	err = json.Unmarshal(res, &vb)
+	err = json.Unmarshal(respBody, &vb)
 	return &vb, err
 }
 
