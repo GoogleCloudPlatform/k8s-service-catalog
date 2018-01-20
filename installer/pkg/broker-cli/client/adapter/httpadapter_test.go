@@ -25,7 +25,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/k8s-service-catalog/installer/pkg/broker-cli/client/osb"
+	"broker-cli/client/osb"
 )
 
 var (
@@ -124,7 +124,7 @@ func TestDeleteBrokerSuccess(t *testing.T) {
 		Project:     "coolProject",
 		Name:        "code",
 	}
-	expectedURL := fmt.Sprintf("%s/v1alpha1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
+	expectedURL := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
 	testSuccess(t, http.MethodDelete, expectedURL, func(adapter Adapter) ([]byte, error) {
 		return adapter.DeleteBroker(params)
 	})
@@ -144,7 +144,7 @@ func TestGetBrokerSuccess(t *testing.T) {
 		Project:     "project",
 		Name:        "hardproblem",
 	}
-	expectedURL := fmt.Sprintf("%s/v1alpha1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
+	expectedURL := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
 	testSuccess(t, http.MethodGet, expectedURL, func(adapter Adapter) ([]byte, error) {
 		return adapter.GetBroker(params)
 	})
@@ -163,7 +163,7 @@ func TestListBrokersSuccess(t *testing.T) {
 		RegistryURL: "https://www.haskell.org",
 		Project:     "hoogle",
 	}
-	expectedURL := fmt.Sprintf("%s/v1alpha1/projects/%s/brokers", params.RegistryURL, params.Project)
+	expectedURL := fmt.Sprintf("%s/v1beta1/projects/%s/brokers", params.RegistryURL, params.Project)
 	testSuccess(t, http.MethodGet, expectedURL, func(adapter Adapter) ([]byte, error) {
 		return adapter.ListBrokers(params)
 	})
