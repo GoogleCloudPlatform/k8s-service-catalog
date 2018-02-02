@@ -47,7 +47,7 @@ func NewHttpAdapter(client DoClient) *HttpAdapter {
 
 // CreateBroker creates a broker in project with the given name, title, and catalogs using the registryURL.
 func (adapter *HttpAdapter) CreateBroker(params *CreateBrokerParams) ([]byte, error) {
-	url := fmt.Sprintf("%s/v1alpha1/projects/%s/brokers", params.RegistryURL, params.Project)
+	url := fmt.Sprintf("%s/v1beta1/projects/%s/brokers", params.RegistryURL, params.Project)
 
 	broker := osb.Broker{
 		Name:     fmt.Sprintf("projects/%s/brokers/%s", params.Project, params.Name),
@@ -64,19 +64,19 @@ func (adapter *HttpAdapter) CreateBroker(params *CreateBrokerParams) ([]byte, er
 
 // DeleteBroker deletes the broker with the given name from the project using registryURL.
 func (adapter *HttpAdapter) DeleteBroker(params *DeleteBrokerParams) ([]byte, error) {
-	url := fmt.Sprintf("%s/v1alpha1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
+	url := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
 	return adapter.doRequest(url, http.MethodDelete, nil)
 }
 
 // GetBroker retrieves the broker with the given name and project using the registryURL.
 func (adapter *HttpAdapter) GetBroker(params *GetBrokerParams) ([]byte, error) {
-	url := fmt.Sprintf("%s/v1alpha1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
+	url := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", params.RegistryURL, params.Project, params.Name)
 	return adapter.doRequest(url, http.MethodGet, nil)
 }
 
 // ListBrokers lists the brokers of the given project using the registryURL.
 func (adapter *HttpAdapter) ListBrokers(params *ListBrokersParams) ([]byte, error) {
-	url := fmt.Sprintf("%s/v1alpha1/projects/%s/brokers", params.RegistryURL, params.Project)
+	url := fmt.Sprintf("%s/v1beta1/projects/%s/brokers", params.RegistryURL, params.Project)
 	return adapter.doRequest(url, http.MethodGet, nil)
 }
 
