@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -153,7 +154,8 @@ type saKey struct {
 	ValidBeforeTime string `json:"validBeforeTime"`
 }
 
-func RemoveServiceAccountKeys(email string) error {
+// RemoveAllServiceAccountKeys removes all the keys associated with the service account.
+func RemoveAllServiceAccountKeys(email string) error {
 	cmd := exec.Command("gcloud", "iam", "service-accounts", "keys", "list", "--iam-account", email, "--format=json")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -182,16 +184,21 @@ func RemoveServiceAccountKeys(email string) error {
 
 		life := et.Sub(bt)
 		if life > 365*24*time.Hour {
-			cmd := exec.Command("gcloud", "iam", "service-accounts", "keys", "delete", k.Name, "--iam-account", email, "--quiet" /*disable interactive mode*/)
-			out, err := cmd.CombinedOutput()
-			if err != nil {
-				fmt.Printf("failed to delete service account key: %s : %v\n", string(out), err)
-				fmt.Printf("WARNING: Please clean up the key from service account %s", email)
-			}
+			RemoveServiceAccountKey(email, k.Name)
 		}
 	}
 
 	return nil
+}
+
+// RemoveServiceAccountKey removes the given key from the service account.
+func RemoveServiceAccountKey(email, keyID string) {
+	cmd := exec.Command("gcloud", "iam", "service-accounts", "keys", "delete", keyID, "--iam-account", email, "--quiet" /*disable interactive mode*/)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("failed to delete service account key: %s : %v\n", string(out), err)
+		fmt.Printf("WARNING: Please clean up the key from service account %s", email)
+	}
 }
 
 // GetConfigValue returns a property value from given section of gcloud's
