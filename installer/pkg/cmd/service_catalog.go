@@ -182,7 +182,7 @@ func generateDeploymentConfigs(ic *InstallConfig) (string, error) {
 		return "", fmt.Errorf("error creating temporary dir: %v", err)
 	}
 
-	sslArtifacts, err := generateSSLArtificats(dir, ic)
+	sslArtifacts, err := generateSSLArtifacts(dir, ic)
 	if err != nil {
 		return dir, fmt.Errorf("error generating SSL artifacts : %v", err)
 	}
@@ -291,7 +291,7 @@ func generateCertConfig(dir string, ic *InstallConfig) (caCSRFilepath, certConfi
 	return
 }
 
-func generateSSLArtificats(dir string, ic *InstallConfig) (result *sslArtifacts, err error) {
+func generateSSLArtifacts(dir string, ic *InstallConfig) (result *sslArtifacts, err error) {
 	csrInputJSON, certGenJSON, err := generateCertConfig(dir, ic)
 	if err != nil {
 		err = fmt.Errorf("error generating cert config :%v", err)
