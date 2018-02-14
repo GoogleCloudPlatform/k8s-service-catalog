@@ -460,7 +460,7 @@ func uninstallServiceCatalog(ns string) error {
 	fmt.Println("deleting service catalog configs...")
 	err = deleteConfig(dir)
 	if err != nil {
-		return fmt.Errorf("error deploying YAML files: %v", err)
+		return fmt.Errorf("error undeploying YAML files: %v", err)
 	}
 
 	// Namespaces are deleted asynchronuously and we need to make sure the
