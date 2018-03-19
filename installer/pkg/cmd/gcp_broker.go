@@ -48,13 +48,13 @@ var (
 	gcpBrokerFileNames = []string{"gcp-broker", "google-oauth-deployment", "service-account-secret"}
 
 	requiredAPIs = []string{
-		"deploymentmanager.googleapis.com",
 		"servicebroker.googleapis.com",
-		// In the future, the APIs below will be enabled on-demand.
 		"iam.googleapis.com",
-		"bigtableadmin.googleapis.com",
 		"cloudresourcemanager.googleapis.com",
+		// In the future, the APIs below will be enabled on-demand.
+		"bigtableadmin.googleapis.com",
 		"ml.googleapis.com",
+		"pubsub.googleapis.com",
 		"spanner.googleapis.com",
 		"sqladmin.googleapis.com",
 	}
