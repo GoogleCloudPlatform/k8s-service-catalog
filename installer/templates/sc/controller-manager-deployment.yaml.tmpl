@@ -52,8 +52,8 @@ spec:
               fieldPath: metadata.namespace
         args:
         - controller-manager
-        - --secure-port
-        - "8444"
+        - --port
+        - "8080"        
         - "--leader-elect=false"
         - -v
         - "10"
@@ -66,16 +66,15 @@ spec:
         - --feature-gates
         - AsyncBindingOperations=true
         ports:
-        - containerPort: 8444
+        - containerPort: 8080
         volumeMounts:
         - name: service-catalog-cert
-          mountPath: /var/run/kubernetes-service-catalog
+          mountPath: /etc/service-catalog-ssl
           readOnly: true
         readinessProbe:
           httpGet:
-            port: 8444
+            port: 8080
             path: /healthz
-            scheme: HTTPS
           failureThreshold: 1
           initialDelaySeconds: 10
           periodSeconds: 10
@@ -83,9 +82,8 @@ spec:
           timeoutSeconds: 2
         livenessProbe:
           httpGet:
-            port: 8444
+            port: 8080
             path: /healthz
-            scheme: HTTPS
           failureThreshold: 3
           initialDelaySeconds: 10
           periodSeconds: 10
@@ -98,5 +96,3 @@ spec:
           items:
           - key: tls.crt
             path: apiserver.crt
-          - key: tls.key
-            path: apiserver.key
