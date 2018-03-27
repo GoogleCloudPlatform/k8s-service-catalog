@@ -118,7 +118,7 @@ assumes kubectl is configured to connect to the Kubernetes cluster.`,
 	// add install command flags
 	c.Flags().Int32Var(&ic.EtcdClusterSize, "etcd-cluster-size", 3, "Etcd cluster size")
 	c.Flags().StringVar(&ic.EtcdBackupStorageClass, "etcd-backup-storageclass", "standard", "Etcd Backup StorageClass")
-	c.Flags().StringVar(&ic.Version, "version", "", "Service Catalog version")
+	c.Flags().StringVar(&ic.Version, "version", "0.1.9", "Service Catalog version")
 	c.Flags().BoolVar(&ic.DryRun, "dryrun", false, "Dryrun")
 
 	return c
@@ -202,7 +202,7 @@ func generateDeploymentConfigs(ic *InstallConfig) (string, error) {
 
 	// by default, we pick latest image tag which points to the latest stable
 	// released version of service catalog.
-	imageTag := "latest"
+	imageTag := "v0.1.9"
 	if ic.Version != "" {
 		// TODO(droot): validate version
 		imageTag = "v" + ic.Version
