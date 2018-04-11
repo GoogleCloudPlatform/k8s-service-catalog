@@ -55,7 +55,6 @@ var (
 		// In the future, the APIs below will be enabled on-demand.
 		"bigquery-json.googleapis.com",
 		"bigtableadmin.googleapis.com",
-		"ml.googleapis.com",
 		"pubsub.googleapis.com",
 		"spanner.googleapis.com",
 		"sqladmin.googleapis.com",
