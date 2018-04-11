@@ -25,20 +25,31 @@
 } \
   || { echo "Build failed."; exit 1; }
 
-{
-  echo "Building cfssl"
-  go get -u "github.com/cloudflare/cfssl/cmd/..." \
-    && cp "${GOPATH}/bin/cfssl" "${TRAVIS_BUILD_DIR}/installer/output/bin" \
-    && cp "${GOPATH}/bin/cfssljson" "${TRAVIS_BUILD_DIR}/installer/output/bin"
-} \
-  || { echo "Build of cfssl failed"; exit 1; }
-
 if [[ -n "${TRAVIS_TAG}" ]]; then
   # Package the binary to a release file
 
+  case "${TRAVIS_OS_NAME}" in
+    linux)
+      flavor="linux-amd64"
+    ;;
+    osx)
+      flavor="darwin-amd64"
+    ;;
+    *) echo Unknown TRAVIS_OS_NAME=${TRAVIS_OS_NAME}
+       exit 1
+       ;;
+  esac
+
+  BIN="${TRAVIS_BUILD_DIR}/installer/output/bin"
+  for pkg in cfssl cfssljson; do
+    url="https://pkg.cfssl.org/R1.2/${pkg}_${flavor}"
+    curl -o "${BIN}/${pkg}" "${url}" \
+      || { echo "Cannot download ${url}"; exit 1; }
+  done
+
   tar --create --gzip \
     --file="${TRAVIS_BUILD_DIR}/installer/output/service-catalog-installer-${TRAVIS_TAG}-${TRAVIS_OS_NAME}.tgz" \
-    --directory="${TRAVIS_BUILD_DIR}/installer/output/bin" \
+    --directory="${BIN}" \
     --verbose \
     sc cfssl cfssljson
 fi
