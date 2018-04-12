@@ -45,6 +45,7 @@ if [[ -n "${TRAVIS_TAG}" ]]; then
     url="https://pkg.cfssl.org/R1.2/${pkg}_${flavor}"
     curl -o "${BIN}/${pkg}" "${url}" \
       || { echo "Cannot download ${url}"; exit 1; }
+    chmod +x "${BIN}/${pkg}"
   done
 
   tar --create --gzip \
