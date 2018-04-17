@@ -70,10 +70,10 @@ func NewAddGCPBrokerCmd() *cobra.Command {
 		Long:  `Adds Google Cloud Platfrom Service Broker to Service Catalog`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := addGCPBroker(); err != nil {
-				fmt.Println("Failed to configure Service Broker")
+				fmt.Println("Failed to configure the service broker")
 				return err
 			}
-			fmt.Println("Service Broker added successfully.")
+			fmt.Println("The service broker added successfully.")
 			return nil
 		},
 	}
@@ -142,14 +142,14 @@ func addGCPBroker() error {
 	if err != nil {
 		// Clean up the newly generated key if the command failed.
 		cleanupNewKey(brokerSAEmail, key)
-		return fmt.Errorf("error generating configs for service broker :: %v", err)
+		return fmt.Errorf("error generating configs for the service broker :: %v", err)
 	}
 
 	err = deployConfigs(dir, gcpBrokerFileNames)
 	if err != nil {
 		// Clean up the newly generated key if the command failed.
 		cleanupNewKey(brokerSAEmail, key)
-		return fmt.Errorf("error deploying service broker configs :%v", err)
+		return fmt.Errorf("error deploying the service broker configs :%v", err)
 	}
 
 	return err
@@ -320,10 +320,10 @@ func NewRemoveGCPBrokerCmd() *cobra.Command {
 		Long:  `Removes Google Cloud Platform Service Broker from service catalog`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := removeGCPBroker(); err != nil {
-				fmt.Println("Failed to remove the Service Broker")
+				fmt.Println("Failed to remove the service broker")
 				return err
 			}
-			fmt.Println("Service Broker removed successfully.")
+			fmt.Println("The service broker removed successfully.")
 			return nil
 		},
 	}
@@ -341,7 +341,7 @@ func removeGCPBroker() error {
 	// remove GCP Broker k8s resources
 	err = generateConfigs(dir, gcpBrokerTemplateDir, gcpBrokerFileNames, nil)
 	if err != nil {
-		return fmt.Errorf("error generating configs for the Service Broker :: %v", err)
+		return fmt.Errorf("error generating configs for the service broker :: %v", err)
 	}
 
 	err = removeConfigs(dir, gcpBrokerFileNames)
@@ -465,7 +465,7 @@ func NewCreateGCPBrokerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-gcp-broker",
 		Short: "Create the Service Broker",
-		Long:  "Creates a Google Cloud Platform Service without adding it to an existing cluster",
+		Long:  "Creates Google Cloud Platform Service without adding it to an existing cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return createGCPBroker(cfg)
 		},
@@ -497,7 +497,7 @@ func createGCPBroker(cfg *createBrokerConfig) error {
 		msg = "Reused an existing"
 	}
 
-	fmt.Printf(`%s Service Broker:
+	fmt.Printf(`%s service broker:
     Name:  %s
     Title: %s
     URL:   %s
