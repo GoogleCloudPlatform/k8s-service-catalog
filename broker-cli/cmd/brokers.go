@@ -17,11 +17,14 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/k8s-service-catalog/broker-cli/client/adapter"
 	"github.com/GoogleCloudPlatform/k8s-service-catalog/broker-cli/cmd/flags"
 	"github.com/spf13/cobra"
 )
+
+const userCancelledBrokerCleanup = "Stopped broker cleanup as per user request"
 
 var (
 	brokersFlags struct {
@@ -30,6 +33,8 @@ var (
 		project string
 		title   string
 		verbose bool
+		force   bool
+		cleanup bool
 	}
 
 	// brokersCmd represents the brokers command.
@@ -79,11 +84,26 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			flags.CheckFlags(&brokersFlags.project, &brokersFlags.broker)
 
-			http := httpAdapterFromFlag()
-			params := &adapter.DeleteBrokerParams{
-				BrokerURL: flags.ConstructBrokerURL(brokersFlags.host, brokersFlags.project, brokersFlags.broker),
+			client := httpAdapterFromFlag()
+			brokerURL := flags.ConstructBrokerURL(brokersFlags.host, brokersFlags.project, brokersFlags.broker)
+
+			if brokersFlags.cleanup == true {
+				if err := cleanupBroker(client, brokerURL); err != nil {
+					if strings.Contains(err.Error(), userCancelledBrokerCleanup) {
+						return
+					}
+
+					log.Printf("Failed to delete broker %q in project %q: %v\n", brokersFlags.broker, brokersFlags.project, err)
+					if lir, err := listInstances(client, brokerURL); err == nil {
+						log.Println("The below resources are yet to be cleaned up!!")
+						printListInstances(client, lir, brokerURL)
+					}
+					return
+				}
 			}
-			err := http.DeleteBroker(params)
+			err := client.DeleteBroker(&adapter.DeleteBrokerParams{
+				BrokerURL: brokerURL,
+			})
 			if err != nil {
 				log.Fatalf("Failed to delete broker %q in project %q: %v\n", brokersFlags.broker, brokersFlags.project, err)
 			}
@@ -100,12 +120,18 @@ var (
 		Long:  "Delete all service instances and bindings within a broker",
 		Run: func(cmd *cobra.Command, args []string) {
 			flags.CheckFlags(&brokersFlags.project, &brokersFlags.broker)
+			client := httpAdapterFromFlag()
 			brokerURL := flags.ConstructBrokerURL(brokersFlags.host, brokersFlags.project, brokersFlags.broker)
-			err := cleanupBroker(brokerURL)
-			if err != nil {
-				if lir, err := listInstances(brokerURL); err == nil {
+
+			if err := cleanupBroker(client, brokerURL); err != nil {
+				if strings.Contains(err.Error(), userCancelledBrokerCleanup) {
+					return
+				}
+
+				log.Printf("Failed to cleanup broker %q in project %q: %v\n", brokersFlags.broker, brokersFlags.project, err)
+				if lir, err := listInstances(client, brokerURL); err == nil {
 					log.Println("The below resources are yet to be cleaned up!!")
-					printListInstances(lir)
+					printListInstances(client, lir, brokerURL)
 				}
 			} else {
 				fmt.Printf("Successfully cleaned up broker %q in project %q!!\n", brokersFlags.broker, brokersFlags.project)
@@ -153,39 +179,47 @@ func init() {
 
 	// Flags for brokers delete.
 	flags.StringFlag(brokersDeleteCmd.PersistentFlags(), &brokersFlags.broker, flags.BrokerLongName, flags.BrokerShortName, "[Required] The name of the broker.")
+	flags.BoolFlag(brokersDeleteCmd.PersistentFlags(), &brokersFlags.cleanup, "cleanup", "",
+		"[Optional] If specified, the tool will delete the contents of the broker if present. (Default: FALSE)")
 
 	// Flags for brokers cleanup.
 	flags.StringFlag(brokersCleanupCmd.PersistentFlags(), &brokersFlags.broker, flags.BrokerLongName, flags.BrokerShortName, "[Required] The name of the broker.")
 	flags.BoolFlag(brokersCleanupCmd.PersistentFlags(), &brokersFlags.verbose, "verbose", "v",
 		"[Optional] If specified, the tool will print verbose logs indicating progress. (Default: FALSE)")
+	flags.BoolFlag(brokersCleanupCmd.PersistentFlags(), &brokersFlags.force, "force", "f",
+		"[Optional] If specified, the tool will forcefully delete broker contents without user approval (Default: FALSE)")
 
 	RootCmd.AddCommand(brokersCmd)
 	// TODO: Uncomment brokerListCmd when ListBroker is implmeneted in SB API.
 	brokersCmd.AddCommand(brokersCreateCmd, brokersDeleteCmd, brokersCleanupCmd, brokersListCmd)
 }
 
-func cleanupBroker(brokerURL string) error {
-	client := httpAdapterFromFlag()
+func cleanupBroker(client adapter.Adapter, brokerURL string) error {
 	showProgress := brokersFlags.verbose
-	lir, err := client.ListInstances(&adapter.ListInstancesParams{
-		Server: brokerURL,
-	})
+	lir, err := listInstances(client, brokerURL)
 	if err != nil {
 		return err
 	}
 
-	errorMap := make(map[string]error)
-	for _, i := range lir.Instances {
-		lbr, err := client.ListBindings(&adapter.ListBindingsParams{
-			Server:     brokerURL,
-			InstanceID: i.ID,
-		})
-		if err != nil {
-			errorMap[i.ID] = err
-			continue
-		}
+	if len(lir.instances) == 0 {
+		fmt.Println("There are no service instances associated with the broker")
+		return nil
+	}
 
-		for _, b := range lbr.Bindings {
+	if brokersFlags.force == false {
+		fmt.Printf("The following service instances in broker %q will be deleted\n", brokerURL)
+		printListInstances(client, lir, brokerURL)
+		fmt.Printf("Enter y/Y to continue or anything else to quit\n")
+		response := ""
+		fmt.Scanf("%s\n", &response)
+		if !(response == "y" || response == "Y") {
+			return fmt.Errorf(userCancelledBrokerCleanup)
+		}
+	}
+
+	errorMap := make(map[string]error)
+	for _, i := range lir.instances {
+		for _, b := range i.bindings {
 			if err := deleteBinding(client, flags.ApiVersionDefault, brokerURL, i, b, showProgress); err != nil {
 				errorMap[i.ID] = err
 				break
@@ -200,7 +234,7 @@ func cleanupBroker(brokerURL string) error {
 	}
 
 	if len(errorMap) > 0 {
-		return fmt.Errorf("Failed to cleanup service instances in broker with error %v", errorMap)
+		return fmt.Errorf("failed to cleanup service instances in broker with error %v", errorMap)
 	}
 
 	return nil
