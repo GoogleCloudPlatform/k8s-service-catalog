@@ -465,7 +465,7 @@ func NewCreateGCPBrokerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-gcp-broker",
 		Short: "Create the Service Broker",
-		Long:  "Creates Google Cloud Platform Service without adding it to an existing cluster",
+		Long:  "Creates Google Cloud Platform Service Broker without adding it to an existing cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return createGCPBroker(cfg)
 		},
