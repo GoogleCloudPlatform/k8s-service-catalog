@@ -70,10 +70,10 @@ func NewAddGCPBrokerCmd() *cobra.Command {
 		Long:  `Adds Google Cloud Platfrom Service Broker to Service Catalog`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := addGCPBroker(); err != nil {
-				fmt.Println("Failed to configure the service broker")
+				fmt.Println("Failed to configure the Service Broker")
 				return err
 			}
-			fmt.Println("The service broker added successfully.")
+			fmt.Println("The Service Broker added successfully.")
 			return nil
 		},
 	}
@@ -116,7 +116,7 @@ func addGCPBroker() error {
 	keyFile := filepath.Join(dir, "key.json")
 	err = gcp.CreateServiceAccountKey(brokerSAEmail, keyFile)
 	if err != nil {
-		return fmt.Errorf("error creating service account key :%v", err)
+		return fmt.Errorf("error creating service account key: %v", err)
 	}
 	fmt.Println("generated the key at: ", keyFile)
 
@@ -142,14 +142,14 @@ func addGCPBroker() error {
 	if err != nil {
 		// Clean up the newly generated key if the command failed.
 		cleanupNewKey(brokerSAEmail, key)
-		return fmt.Errorf("error generating configs for the service broker :: %v", err)
+		return fmt.Errorf("error generating configs for the Service Broker: %v", err)
 	}
 
 	err = deployConfigs(dir, gcpBrokerFileNames)
 	if err != nil {
 		// Clean up the newly generated key if the command failed.
 		cleanupNewKey(brokerSAEmail, key)
-		return fmt.Errorf("error deploying the service broker configs :%v", err)
+		return fmt.Errorf("error deploying the Service Broker configs: %v", err)
 	}
 
 	return err
@@ -320,10 +320,10 @@ func NewRemoveGCPBrokerCmd() *cobra.Command {
 		Long:  `Removes Google Cloud Platform Service Broker from service catalog`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := removeGCPBroker(); err != nil {
-				fmt.Println("Failed to remove the service broker")
+				fmt.Println("Failed to remove the Service Broker")
 				return err
 			}
-			fmt.Println("The service broker removed successfully.")
+			fmt.Println("The Service Broker removed successfully.")
 			return nil
 		},
 	}
@@ -341,12 +341,12 @@ func removeGCPBroker() error {
 	// remove GCP Broker k8s resources
 	err = generateConfigs(dir, gcpBrokerTemplateDir, gcpBrokerFileNames, nil)
 	if err != nil {
-		return fmt.Errorf("error generating configs for the service broker :: %v", err)
+		return fmt.Errorf("error generating configs for the Service Broker: %v", err)
 	}
 
 	err = removeConfigs(dir, gcpBrokerFileNames)
 	if err != nil {
-		return fmt.Errorf("error deleting broker resources : %v", err)
+		return fmt.Errorf("error deleting broker resources: %v", err)
 	}
 
 	// due to moving the google-oauth resources to a separate namespace, we
@@ -436,7 +436,7 @@ func deployConfigs(dir string, filenames []string) error {
 		output, err := exec.Command("kubectl", "apply", "-f", filepath.Join(dir, f+".yaml")).CombinedOutput()
 		// TODO: cleanup
 		if err != nil {
-			return fmt.Errorf("deploy failed with output: %s :%v", err, string(output))
+			return fmt.Errorf("deploy failed with output: %s: %v", err, string(output))
 		}
 	}
 	return nil
@@ -447,7 +447,7 @@ func removeConfigs(dir string, filenames []string) error {
 		output, err := exec.Command("kubectl", "delete", "-f", filepath.Join(dir, f+".yaml"), "--ignore-not-found").CombinedOutput()
 		// TODO: cleanup
 		if err != nil {
-			return fmt.Errorf("failed to delete resources output: %s :%v", err, string(output))
+			return fmt.Errorf("failed to delete resources output: %s: %v", err, string(output))
 		}
 	}
 	return nil
@@ -497,7 +497,7 @@ func createGCPBroker(cfg *createBrokerConfig) error {
 		msg = "Reused an existing"
 	}
 
-	fmt.Printf(`%s service broker:
+	fmt.Printf(`%s Service Broker:
     Name:  %s
     Title: %s
     URL:   %s

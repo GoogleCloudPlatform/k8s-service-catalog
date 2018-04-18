@@ -122,8 +122,8 @@ make
 
 ## Tutorial
 
-Once you have Service Catalog installed and the Service Broker added to the cluster.
-Follow this [basic tutorial](/installer/service-catalog-pubsub-tutorial.md) to get started with Service Catalog.
+Once you have Service Catalog installed and the Service Broker added to the cluster,
+follow this [basic tutorial](/installer/service-catalog-pubsub-tutorial.md) to get started with Service Catalog.
 
 ## Contribution
 
