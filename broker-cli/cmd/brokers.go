@@ -86,7 +86,7 @@ var (
 			client := httpAdapterFromFlag()
 			brokerURL := flags.ConstructBrokerURL(brokersFlags.host, brokersFlags.project, brokersFlags.broker)
 
-			if brokersFlags.cleanup == true {
+			if brokersFlags.cleanup {
 				if err := cleanupBroker(client, brokerURL); err != nil {
 					return
 				}
