@@ -61,6 +61,16 @@ var (
 		"sqladmin.googleapis.com",
 		"storage-api.googleapis.com",
 	}
+
+	betaServiceGuids = map[string]bool{
+		"5dcd0ba6-8df6-4a2a-b5fd-981d0aa76803": true,
+		"4197a602-3eb9-4d40-8e21-0311a7a8eecb": true,
+		"8e0bbfa6-2cac-40b6-8adf-e5ee8dcbe4e8": true,
+		"6f4e8d17-4fde-45bd-9dcf-28bcb7eeea5c": true,
+		"e9776b6c-4022-41ec-8b83-7c368ed9c270": true,
+		"85c5e53a-d70b-480e-afd3-737b0b1329f3": true,
+		"b1de7f2f-1e84-44ae-b4f0-2dcb613c17c9": true,
+	}
 )
 
 func NewAddGCPBrokerCmd() *cobra.Command {
@@ -236,17 +246,46 @@ func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtu
 		return nil, fmt.Errorf("failed to create broker client. You might want to run 'gcloud auth application-default login'")
 	}
 
-	brokerURL := "https://servicebroker.googleapis.com"
+	host := "https://servicebroker.googleapis.com"
+	brokerURL := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", host, projectID, brokerName)
 	errCode, respBody, err := brokerClient.CreateBroker(&adapter.CreateBrokerParams{
-		URL:     brokerURL,
+		URL:     host,
 		Project: projectID,
 		Name:    brokerName,
 		Title:   brokerTitle,
 	})
-	if errCode == 409 {
+	if errCode == http.StatusConflict {
+		fmt.Printf("Broker %q, already exists\n", brokerName)
+		res, err := brokerClient.GetCatalog(&adapter.GetCatalogParams{
+			Server: brokerURL,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("Invalid broker %q, error getting catalog for broker: %v\n", brokerURL, err)
+		}
+
+		isBetaBroker := true
+		if len(res.Services) != len(betaServiceGuids) {
+			isBetaBroker = false
+		}
+
+		if isBetaBroker {
+			for _, svc := range res.Services {
+				if _, ok := betaServiceGuids[svc.ID]; !ok {
+					isBetaBroker = false
+					break
+				}
+			}
+		}
+
+		if isBetaBroker {
+			fmt.Printf("Existing broker is a Beta broker!!\n")
+		} else {
+			return nil, fmt.Errorf("Existing broker is an EAP broker, please run \"sc remove-gcp-broker\", and readd it to get Beta broker\n")
+		}
+
 		return &virtualBroker{
 			Name:     brokerName,
-			URL:      fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", brokerURL, projectID, brokerName),
+			URL:      brokerURL,
 			Title:    brokerTitle,
 			Existing: true,
 		}, nil
