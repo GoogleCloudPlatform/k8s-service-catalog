@@ -62,14 +62,36 @@ var (
 		"storage-api.googleapis.com",
 	}
 
-	betaServiceGuids = map[string]bool{
-		"5dcd0ba6-8df6-4a2a-b5fd-981d0aa76803": true,
-		"4197a602-3eb9-4d40-8e21-0311a7a8eecb": true,
-		"8e0bbfa6-2cac-40b6-8adf-e5ee8dcbe4e8": true,
-		"6f4e8d17-4fde-45bd-9dcf-28bcb7eeea5c": true,
-		"e9776b6c-4022-41ec-8b83-7c368ed9c270": true,
-		"85c5e53a-d70b-480e-afd3-737b0b1329f3": true,
-		"b1de7f2f-1e84-44ae-b4f0-2dcb613c17c9": true,
+	eapServiceGuids = map[string]bool{
+		"e8c2ab3e-b96d-4140-8ff3-da682088737c": true,
+		"33b61a24-c3ec-4721-a9e6-35648d7c441a": true,
+		"31e5a956-cf67-4548-b266-20414d0ecfbb": true,
+		"d730b49e-f865-40c4-8d22-1c62f2d37a83": true,
+		"ab5b24a3-2962-42e8-9746-95242b3fe732": true,
+		"483e1331-919f-403f-8618-dcea51ca88f7": true,
+		"997146f4-bb5b-49c9-9ba6-f38931895825": true,
+		"cbf73cfc-473a-4d42-874f-9ec9bd349963": true,
+		"70eb86dc-7d68-4b72-8e3a-a42b40219b6d": true,
+		"7cdbd1ef-f691-411e-8a91-2d8968387a33": true,
+		"62153072-d076-4167-8014-596d1d2f7d28": true,
+		"6c5b9ef4-ec57-4a39-ae4b-0b91f432b9c2": true,
+		"42e243aa-b16a-4162-b8e5-3de2b461b119": true,
+		"3007c0d2-91a7-4678-80f5-89877a9e08ad": true,
+		"cac55a0b-9359-4ba0-accf-dac9b9c2c8bb": true,
+		"d1d8c675-94d4-470d-9a71-a63d9e3c3915": true,
+		"312e1044-ac87-4568-8155-9ad7765594fe": true,
+		"61f859d6-86d4-4d62-a323-1a94c4d15bf3": true,
+		"94e9d121-4936-4cb0-9928-b3540f92363c": true,
+		"e06f6df6-2889-441e-a493-6184bf80b82d": true,
+		"8ed5ce7b-849f-4c28-bc0a-383b336db407": true,
+		"d5e45fc8-345b-490d-9f1e-3765a22d9b77": true,
+		"6bd33df9-d45e-40be-86ce-cb2ff08875db": true,
+		"2df32c48-0e0d-4080-9848-406ab20df26d": true,
+		"3a25027c-0a83-48db-a31b-808632541b30": true,
+		"db341b05-ae8a-4d0e-bb50-246b9714b263": true,
+		"59d23ff0-f756-44e8-ba2b-24c6d846dc94": true,
+		"44d078ba-8789-4222-bb11-0b8944fc5309": true,
+		"ada963b1-7b7c-4f10-8bc5-82b163c5c25a": true,
 	}
 )
 
@@ -263,24 +285,16 @@ func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtu
 			return nil, fmt.Errorf("Invalid broker %q, error getting catalog for broker: %v\n", brokerURL, err)
 		}
 
-		isBetaBroker := true
-		if len(res.Services) != len(betaServiceGuids) {
-			isBetaBroker = false
-		}
-
-		if isBetaBroker {
-			for _, svc := range res.Services {
-				if _, ok := betaServiceGuids[svc.ID]; !ok {
-					isBetaBroker = false
-					break
-				}
+		isEAPBroker := false
+		for _, svc := range res.Services {
+			if _, ok := eapServiceGuids[svc.ID]; ok {
+				isEAPBroker = true
+				break
 			}
 		}
 
-		if isBetaBroker {
-			fmt.Printf("Existing broker is a Beta broker!!\n")
-		} else {
-			return nil, fmt.Errorf("Existing broker is an EAP broker, please run \"sc remove-gcp-broker\", and readd it to get Beta broker\n")
+		if isEAPBroker {
+			return nil, fmt.Errorf("Existing broker is an EAP broker, please delete broker using broker-cli, and rerun \"sc add-gcp-broker\" to get Beta broker\n")
 		}
 
 		return &virtualBroker{
