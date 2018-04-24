@@ -42,13 +42,14 @@ type CreateBrokerParams struct {
 
 // GetCatalogParams is used as input to GetCatalog.
 type GetCatalogParams struct {
-	// Server is URL of the broker.
-	Server string
+	URL     string
+	Project string
+	Name    string
 }
 
 // GetCatalogResult is output of successful GetCatalog request.
 type GetCatalogResult struct {
-	Services []Service
+	Services []Service `json:"services"`
 }
 
 // Service corresponds to the Service Object in the Open Service Broker API.
@@ -99,7 +100,7 @@ func (adapter *HttpAdapter) CreateBroker(params *CreateBrokerParams) (int, []byt
 }
 
 func (adapter *HttpAdapter) GetCatalog(params *GetCatalogParams) (*GetCatalogResult, error) {
-	url := fmt.Sprintf("%s/v2/catalog", params.Server)
+	url := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s/v2/catalog", params.URL, params.Project, params.Name)
 
 	statusCode, body, err := adapter.doRequest(url, http.MethodGet, nil)
 	if err != nil {

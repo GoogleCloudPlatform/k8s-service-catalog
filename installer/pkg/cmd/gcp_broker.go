@@ -62,7 +62,7 @@ var (
 		"storage-api.googleapis.com",
 	}
 
-	eapServiceGuids = map[string]bool{
+	eapServiceGUIDS = map[string]bool{
 		"e8c2ab3e-b96d-4140-8ff3-da682088737c": true,
 		"33b61a24-c3ec-4721-a9e6-35648d7c441a": true,
 		"31e5a956-cf67-4548-b266-20414d0ecfbb": true,
@@ -105,7 +105,7 @@ func NewAddGCPBrokerCmd() *cobra.Command {
 				fmt.Println("Failed to configure the Service Broker")
 				return err
 			}
-			fmt.Println("The Service Broker added successfully.")
+			fmt.Println("The Service Broker has been added successfully.")
 			return nil
 		},
 	}
@@ -269,7 +269,6 @@ func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtu
 	}
 
 	host := "https://servicebroker.googleapis.com"
-	brokerURL := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", host, projectID, brokerName)
 	errCode, respBody, err := brokerClient.CreateBroker(&adapter.CreateBrokerParams{
 		URL:     host,
 		Project: projectID,
@@ -277,32 +276,7 @@ func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtu
 		Title:   brokerTitle,
 	})
 	if errCode == http.StatusConflict {
-		fmt.Printf("Broker %q, already exists\n", brokerName)
-		res, err := brokerClient.GetCatalog(&adapter.GetCatalogParams{
-			Server: brokerURL,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("Invalid broker %q, error getting catalog for broker: %v\n", brokerURL, err)
-		}
-
-		isEAPBroker := false
-		for _, svc := range res.Services {
-			if _, ok := eapServiceGuids[svc.ID]; ok {
-				isEAPBroker = true
-				break
-			}
-		}
-
-		if isEAPBroker {
-			return nil, fmt.Errorf("Existing broker is an EAP broker, please delete broker using broker-cli, and rerun \"sc add-gcp-broker\" to get Beta broker\n")
-		}
-
-		return &virtualBroker{
-			Name:     brokerName,
-			URL:      brokerURL,
-			Title:    brokerTitle,
-			Existing: true,
-		}, nil
+		return handleExistingBroker(host, projectID, brokerName, brokerTitle, brokerClient)
 	}
 
 	if err != nil {
@@ -312,6 +286,38 @@ func getOrCreateVirtualBroker(projectID, brokerName, brokerTitle string) (*virtu
 	var vb virtualBroker
 	err = json.Unmarshal(respBody, &vb)
 	return &vb, err
+}
+
+func handleExistingBroker(host, projectID, brokerName, brokerTitle string, brokerClient *adapter.HttpAdapter) (*virtualBroker, error) {
+	fmt.Printf("Broker %q, already exists\n", brokerName)
+	brokerURL := fmt.Sprintf("%s/v1beta1/projects/%s/brokers/%s", host, projectID, brokerName)
+	res, err := brokerClient.GetCatalog(&adapter.GetCatalogParams{
+		URL:     host,
+		Project: projectID,
+		Name:    brokerName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Invalid broker %q, error getting catalog for broker: %v\n", brokerURL, err)
+	}
+
+	isEAPBroker := false
+	for _, svc := range res.Services {
+		if _, ok := eapServiceGUIDS[svc.ID]; ok {
+			isEAPBroker = true
+			break
+		}
+	}
+
+	if isEAPBroker {
+		return nil, fmt.Errorf("Your existing broker is an early version of the broker. Please delete your broker using broker-cli and re-run \"sc add-gcp-broker\".\n")
+	}
+
+	return &virtualBroker{
+		Name:     brokerName,
+		URL:      brokerURL,
+		Title:    brokerTitle,
+		Existing: true,
+	}, nil
 }
 
 // virtualBroker represents a GCP virtual broker.
