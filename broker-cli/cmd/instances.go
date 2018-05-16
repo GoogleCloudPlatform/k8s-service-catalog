@@ -78,7 +78,7 @@ var (
 			}
 
 			if !instancesFlags.acceptsIncomplete {
-				log.Fatalf("Cannot create instance synchronously, set flag --asynchronous to be true")
+				log.Fatal("Cannot create instance synchronously, set flag --asynchronous to be true")
 			}
 
 			res, err := client.CreateInstance(&adapter.CreateInstanceParams{
@@ -162,7 +162,7 @@ var (
 			}
 
 			if !instancesFlags.acceptsIncomplete {
-				log.Fatalf("Cannot delete instance synchronously, set flag --asynchronous to be true")
+				log.Fatal("Cannot delete instance synchronously, set flag --asynchronous to be true")
 			}
 
 			res, err := client.DeleteInstance(&adapter.DeleteInstanceParams{
@@ -216,7 +216,7 @@ var (
 			}
 
 			if !instancesFlags.acceptsIncomplete {
-				log.Fatalf("Cannot update instance synchronously, set flag --asynchronous to be true")
+				log.Fatal("Cannot update instance synchronously, set flag --asynchronous to be true")
 			}
 
 			res, err := client.UpdateInstance(&adapter.UpdateInstanceParams{

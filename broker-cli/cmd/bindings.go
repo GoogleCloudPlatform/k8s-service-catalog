@@ -61,7 +61,7 @@ var (
 			}
 
 			if !bindingsFlags.acceptsIncomplete {
-				log.Fatalf("Cannot create binding synchronously, set flag --asynchronous to be true")
+				log.Fatal("Cannot create binding synchronously, set flag --asynchronous to be true")
 			}
 
 			res, err := client.CreateBinding(&adapter.CreateBindingParams{
@@ -121,7 +121,7 @@ var (
 			}
 
 			if !bindingsFlags.acceptsIncomplete {
-				log.Fatalf("Cannot delete binding synchronously, set flag --asynchronous to be true")
+				log.Fatal("Cannot delete binding synchronously, set flag --asynchronous to be true")
 			}
 
 			res, err := client.DeleteBinding(&adapter.DeleteBindingParams{
