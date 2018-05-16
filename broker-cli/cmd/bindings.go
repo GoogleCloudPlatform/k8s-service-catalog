@@ -59,6 +59,11 @@ var (
 			if err != nil {
 				log.Fatalf("Error creating binding %s to instance %s: %v", bindingsFlags.bindingID, bindingsFlags.instanceID, err)
 			}
+
+			if !bindingsFlags.acceptsIncomplete {
+				log.Fatalf("Cannot create binding synchronously, set flag --asynchronous to be true")
+			}
+
 			res, err := client.CreateBinding(&adapter.CreateBindingParams{
 				Server:            brokerURL,
 				APIVersion:        bindingsFlags.apiVersion,
@@ -113,6 +118,10 @@ var (
 			brokerURL, err := bindingsFlags.BrokerURL()
 			if err != nil {
 				log.Fatalf("Error deleting binding %s to instance %s: %v", bindingsFlags.bindingID, bindingsFlags.instanceID, err)
+			}
+
+			if !bindingsFlags.acceptsIncomplete {
+				log.Fatalf("Cannot delete binding synchronously, set flag --asynchronous to be true")
 			}
 
 			res, err := client.DeleteBinding(&adapter.DeleteBindingParams{

@@ -76,6 +76,11 @@ var (
 			if err != nil {
 				log.Fatalf("Error creating instance %s: %v", instancesFlags.instanceID, err)
 			}
+
+			if !instancesFlags.acceptsIncomplete {
+				log.Fatalf("Cannot create instance synchronously, set flag --asynchronous to be true")
+			}
+
 			res, err := client.CreateInstance(&adapter.CreateInstanceParams{
 				Server:            brokerURL,
 				APIVersion:        instancesFlags.apiVersion,
@@ -155,6 +160,11 @@ var (
 			if err != nil {
 				log.Fatalf("Error deleting instance %s: %v", instancesFlags.instanceID, err)
 			}
+
+			if !instancesFlags.acceptsIncomplete {
+				log.Fatalf("Cannot delete instance synchronously, set flag --asynchronous to be true")
+			}
+
 			res, err := client.DeleteInstance(&adapter.DeleteInstanceParams{
 				APIVersion:        instancesFlags.apiVersion,
 				Server:            brokerURL,
@@ -204,6 +214,11 @@ var (
 			if err != nil {
 				log.Fatalf("Error updating instance %s: %v", instancesFlags.instanceID, err)
 			}
+
+			if !instancesFlags.acceptsIncomplete {
+				log.Fatalf("Cannot update instance synchronously, set flag --asynchronous to be true")
+			}
+
 			res, err := client.UpdateInstance(&adapter.UpdateInstanceParams{
 				APIVersion:             instancesFlags.apiVersion,
 				Server:                 brokerURL,
