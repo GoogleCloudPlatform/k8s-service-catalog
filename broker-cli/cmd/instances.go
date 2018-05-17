@@ -42,7 +42,6 @@ var (
 		flags.BrokerURLConstructor
 		apiVersion             string
 		instanceID             string
-		acceptsIncomplete      bool
 		serviceID              string
 		planID                 string
 		organizationGUID       string
@@ -77,14 +76,10 @@ var (
 				log.Fatalf("Error creating instance %s: %v", instancesFlags.instanceID, err)
 			}
 
-			if !instancesFlags.acceptsIncomplete {
-				log.Fatal("Cannot create instance synchronously, set flag --asynchronous to be true")
-			}
-
 			res, err := client.CreateInstance(&adapter.CreateInstanceParams{
 				Server:            brokerURL,
 				APIVersion:        instancesFlags.apiVersion,
-				AcceptsIncomplete: instancesFlags.acceptsIncomplete,
+				AcceptsIncomplete: true,
 				InstanceID:        instancesFlags.instanceID,
 				ServiceID:         instancesFlags.serviceID,
 				PlanID:            instancesFlags.planID,
@@ -95,11 +90,6 @@ var (
 			})
 			if err != nil {
 				log.Fatalf("Error creating instance %s in broker %s: %v", instancesFlags.instanceID, brokerURL, err)
-			}
-
-			if !res.Async {
-				fmt.Printf("Successfully created the instance %s: %+v\n", instancesFlags.instanceID, *res)
-				return
 			}
 
 			if !instancesFlags.wait {
@@ -161,25 +151,16 @@ var (
 				log.Fatalf("Error deleting instance %s: %v", instancesFlags.instanceID, err)
 			}
 
-			if !instancesFlags.acceptsIncomplete {
-				log.Fatal("Cannot delete instance synchronously, set flag --asynchronous to be true")
-			}
-
 			res, err := client.DeleteInstance(&adapter.DeleteInstanceParams{
 				APIVersion:        instancesFlags.apiVersion,
 				Server:            brokerURL,
-				AcceptsIncomplete: instancesFlags.acceptsIncomplete,
+				AcceptsIncomplete: true,
 				InstanceID:        instancesFlags.instanceID,
 				ServiceID:         instancesFlags.serviceID,
 				PlanID:            instancesFlags.planID,
 			})
 			if err != nil {
 				log.Fatalf("Error deleting instance %s in broker %s: %v", instancesFlags.instanceID, brokerURL, err)
-			}
-
-			if !res.Async {
-				fmt.Printf("Successfully deleted the instance %s: %+v\n", instancesFlags.instanceID, *res)
-				return
 			}
 
 			if !instancesFlags.wait {
@@ -215,14 +196,10 @@ var (
 				log.Fatalf("Error updating instance %s: %v", instancesFlags.instanceID, err)
 			}
 
-			if !instancesFlags.acceptsIncomplete {
-				log.Fatal("Cannot update instance synchronously, set flag --asynchronous to be true")
-			}
-
 			res, err := client.UpdateInstance(&adapter.UpdateInstanceParams{
 				APIVersion:             instancesFlags.apiVersion,
 				Server:                 brokerURL,
-				AcceptsIncomplete:      instancesFlags.acceptsIncomplete,
+				AcceptsIncomplete:      true,
 				InstanceID:             instancesFlags.instanceID,
 				ServiceID:              instancesFlags.serviceID,
 				PlanID:                 instancesFlags.planID,
@@ -235,11 +212,6 @@ var (
 			})
 			if err != nil {
 				log.Fatalf("Error updating instance %s in broker %s: %v", instancesFlags.instanceID, brokerURL, err)
-			}
-
-			if !res.Async {
-				fmt.Printf("Successfully updated the instance %s: %+v\n", instancesFlags.instanceID, *res)
-				return
 			}
 
 			if !instancesFlags.wait {
@@ -302,11 +274,8 @@ func init() {
 	// weird short name.
 	flags.StringFlag(instancesCreateCmd.PersistentFlags(), &instancesFlags.instanceID, "instance", "i",
 		"[Required] Service instance ID.")
-	flags.BoolFlag(instancesCreateCmd.PersistentFlags(), &instancesFlags.acceptsIncomplete, "asynchronous", "a",
-		"[Optional] If specified, the broker will execute the request asynchronously. (Default: FALSE)")
 	flags.BoolFlag(instancesCreateCmd.PersistentFlags(), &instancesFlags.wait, "wait", "w",
-		"[Optional] If specified, the broker will keep polling the last operation when the broker "+
-			"is executing the operation asynchronously. (Default: FALSE)")
+		"[Optional] If specified, the broker will keep polling the last operation. (Default: FALSE)")
 	flags.StringFlag(instancesCreateCmd.PersistentFlags(), &instancesFlags.serviceID, "service", "r",
 		"[Required] The service ID used to create the service instance.")
 	flags.StringFlag(instancesCreateCmd.PersistentFlags(), &instancesFlags.planID, "plan", "l",
@@ -326,11 +295,8 @@ func init() {
 	// Flags for `instances delete` command group.
 	flags.StringFlag(instancesDeleteCmd.PersistentFlags(), &instancesFlags.instanceID, "instance", "i",
 		"[Required] Service instance ID.")
-	flags.BoolFlag(instancesDeleteCmd.PersistentFlags(), &instancesFlags.acceptsIncomplete, "asynchronous", "a",
-		"[Optional] If specified, the broker will execute the request asynchronously. (Default: FALSE)")
 	flags.BoolFlag(instancesDeleteCmd.PersistentFlags(), &instancesFlags.wait, "wait", "w",
-		"[Optional] If specified, the broker will keep polling the last operation when the broker "+
-			"is executing the operation asynchronously. (Default: FALSE)")
+		"[Optional] If specified, the broker will keep polling the last operation. (Default: FALSE)")
 	flags.StringFlag(instancesDeleteCmd.PersistentFlags(), &instancesFlags.serviceID, "service", "r",
 		"[Required] The service ID used by the service instance.")
 	flags.StringFlag(instancesDeleteCmd.PersistentFlags(), &instancesFlags.planID, "plan", "l",
@@ -339,11 +305,8 @@ func init() {
 	// Flags for `instances update` command group.
 	flags.StringFlag(instancesUpdateCmd.PersistentFlags(), &instancesFlags.instanceID, "instance", "i",
 		"[Required] Service instance ID.")
-	flags.BoolFlag(instancesUpdateCmd.PersistentFlags(), &instancesFlags.acceptsIncomplete, "asynchronous", "a",
-		"[Optional] If specified, the broker will execute the request asynchronously. (Default: FALSE)")
 	flags.BoolFlag(instancesUpdateCmd.PersistentFlags(), &instancesFlags.wait, "wait", "w",
-		"[Optional] If specified, the broker will keep polling the last operation when the broker "+
-			"is executing the operation asynchronously. (Default: FALSE)")
+		"[Optional] If specified, the broker will keep polling the last operation. (Default: FALSE)")
 	flags.StringFlag(instancesUpdateCmd.PersistentFlags(), &instancesFlags.serviceID, "service", "r",
 		"[Required] The service ID used by the service instance.")
 	flags.StringFlag(instancesUpdateCmd.PersistentFlags(), &instancesFlags.planID, "plan", "l",
