@@ -21,6 +21,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -38,19 +39,36 @@ func EnableAPIs(apis []string) error {
 	if err != nil {
 		return err
 	}
+	//use WaitGroup to wait for every enable API call to finish
+	var wg sync.WaitGroup
+	errs := make(chan error, 1)
 
 	for _, api := range apis {
 		if _, found := existingAPIs[api]; !found {
 			// Each enableAPI() can take more than a minute, so we want to show the status per API.
 			fmt.Printf("enabling a GCP API: %s\n", api)
-			err = enableAPI(api)
-			if err != nil {
-				return err
-			}
+			wg.Add(1)
+			go func(api string) {
+				defer wg.Done()
+				err = enableAPI(api)
+				if err != nil {
+					errs <- err
+				} else {
+					//Finish response for whenever an API has successfully returned
+					fmt.Printf("Enabled GCP API: %s\n", api)
+				}
+			}(api)
 		}
 	}
 
-	return nil
+	//Block until all goroutines finish. Check if any errors were returned
+	wg.Wait()
+	select {
+	case err := <-errs:
+		return err
+	default:
+		return nil
+	}
 }
 
 // enabledAPIs returned set of enabled GCP APIs.
