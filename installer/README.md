@@ -17,8 +17,8 @@ Service Catalog Installer `sc` lets you do the following:
 
 - Install Service Catalog
 - Uninstall Service Catalog
-- Install the Service Broker
-- Uninstall the Service Broker
+- Install a Service Broker
+- Uninstall a Service Broker
 
 ## Requirements
 
@@ -95,11 +95,11 @@ After running the above command, `sc` should get installed in your GOPATH/bin di
   ```bash
   sc uninstall
   ```
-- To add the Service Broker to the Service Catalog, run
+- To add the GCP Service Broker to the Service Catalog, run
   ```bash
   sc add-gcp-broker
   ```
-- To remove the Service Broker from the Service Catalog, run
+- To remove the GCP Service Broker from the Service Catalog, run
   ```bash
   sc remove-gcp-broker
   ```
