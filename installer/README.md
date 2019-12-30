@@ -42,6 +42,7 @@ Before installing Service Catalog atop Kubernetes cluster, you need to ensure fo
   ```bash
   kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user=<user-name>
   ```
+  _Note: The email provided to --user is case sensitive. Some older guides specify using `gcloud config get-value account`, which lowercases the email address._
 - [gcloud](https://cloud.google.com/sdk/) should be installed and configured with following
    commands in order to be used by the `sc` to configure the Service Broker.
   ```bash
